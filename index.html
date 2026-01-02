@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cortexz AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #171717;
+            color: #E5E7EB;
+        }
+
+        .font-card { border: 1px solid rgba(255,255,255,0.04); }
+        .font-card .font-preview { padding: 0.5rem; border-radius: 0.375rem; background: rgba(255,255,255,0.02); }
+        .font-select-btn[aria-selected="true"] { background: #059669; }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #171717;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4B5563;
+        }
+        .main-input-shadow {
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .prose-dark {
+            color: #d1d5db;
+        }
+        .prose-dark h1, .prose-dark h2, .prose-dark h3, .prose-dark h4, .prose-dark strong {
+            color: #f9fafb;
+        }
+        .prose-dark a {
+            color: #60a5fa;
+        }
+        .prose-dark blockquote {
+            border-left-color: #4b5563;
+            color: #9ca3af;
+        }
+        .prose-dark code {
+           background-color: #374151;
+           color: #e5e7eb;
+           padding: 2px 4px;
+           border-radius: 4px;
+        }
+        .prose-dark pre {
+            background-color: #1f2937;
+            color: #d1d5db;
+        }
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+      
+        #sidebar {
+            width: 5rem; 
+            transition: width 0.18s ease;
+            overflow: hidden;
+        }
+        #sidebar.open {
+            width: 14rem; 
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            width: 100%;
+        }
+        .sidebar-label {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        #sidebar.open .sidebar-label {
+            display: inline-block;
+            opacity: 1;
+        }
+
+       
+        .code-card {
+            background: linear-gradient(180deg, rgba(10,11,13,0.6), rgba(15,17,20,0.6));
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .code-card pre {
+            margin: 0;
+            background: transparent !important;
+            padding: 0;
+            overflow: auto;
+            border-radius: 0.375rem;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(13,18,23,0.7);
+            color: #e5e7eb;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+        .copy-btn:hover { background: rgba(255,255,255,0.06); }
+
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <aside id="sidebar" class="bg-[#101010] flex flex-col justify-between p-2 border-r border-white/10">
+        
+        <div class="flex flex-col items-start gap-2 w-full">
+            <button id="sidebar-toggle" class="p-3 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item">
+            
+                <img src="c-4.png" class="w-10 h-10 object-contain" alt="logo">
+                <span class="sidebar-label">Cortexz AI</span>
+            </button>
+
+            <button class="p-4 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item" onclick="resetUI()">
+              
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="sidebar-label">Reset</span>
+            </button>
+
+            <div class="w-full border-t border-white/10 my-2"></div>
+
+            <button id="home-button" class="p-3 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item">
+              
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="sidebar-label">Home</span>
+            </button>
+
+            <button id="profile-button" class="p-3 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item">
+               
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C14.2091 21 16 19.2091 16 17C16 14.7909 14.2091 13 12 13C9.79086 13 8 14.7909 8 17C8 19.2091 9.79086 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 8C19.2091 8 21 6.20914 21 4C21 1.79086 19.2091 0 17 0C14.7909 0 13 1.79086 13 4C13 6.20914 14.7909 8 17 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 8C9.20914 8 11 6.20914 11 4C11 1.79086 9.20914 0 7 0C4.79086 0 3 1.79086 3 4C3 6.20914 4.79086 8 7 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="sidebar-label">Profile</span>
+            </button>
+
+            <button id="apps-button" class="p-3 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item">
+             
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3H3V10H10V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 3H14V10H21V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 14H14V21H21V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 14H3V21H10V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="sidebar-label">Apps</span>
+            </button>
+        </div>
+        <div class="flex flex-col items-start gap-2 w-full">
+            <button class="p-3 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item">
+                
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="sidebar-label">Contacts</span>
+            </button>
+            <button class="p-3 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item">
+               
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 18L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 14L12 18L8 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="sidebar-label">Activity</span>
+            </button>
+            <button class="p-3 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item">
+                
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="sidebar-label">Download</span>
+            </button>
+            <div class="w-full border-t border-white/10 my-2"></div>
+            <button id="help-button" class="p-3 rounded-lg hover:bg-white/10 transition-colors w-full flex items-center sidebar-item">
+               
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.08984 9.00002C9.32495 8.33169 9.78916 7.76811 10.4001 7.40913C11.011 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7745 7.52472 14.2819 8.08312C14.7893 8.64152 15.1278 9.35842 15.2498 10.1C15.2498 11.5 12.9998 12.5 12.9998 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="sidebar-label">Help</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col items-center">
+
+        <div id="initial-view" class="flex-1 flex flex-col justify-center items-center w-full max-w-3xl px-4">
+            <h1 class="text-6xl font-medium tracking-tighter mb-8">Cortexz AI</h1>
+            <div class="w-full">
+                <form id="main-form" class="relative">
+                    <div class="relative w-full main-input-shadow rounded-2xl bg-[#282828]">
+                       <div id="image-preview-container" class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2"></div>
+                        <input id="main-input" type="text" placeholder="Ask anything or @mention a Space" class="w-full bg-transparent text-white placeholder-gray-500 py-7 pl-14 pr-28 rounded-3xl border-none focus:ring-1 focus:ring-cyan-300 transition">
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 text-gray-400">
+                             <button type="button" id="attach-button" class="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.44 11.05L12.95 2.55998C12.5627 2.17264 12.0917 1.87183 11.5758 1.68143C11.0598 1.49104 10.5119 1.41584 9.96599 1.46332C9.41999 1.5108 8.88934 1.67961 8.4117 1.95886C7.93406 2.23812 7.52285 2.62061 7.21001 3.07998L3.07001 9.21998C2.56334 10.0028 2.31689 10.9263 2.36531 11.8532C2.41373 12.7801 2.75479 13.6663 3.34001 14.4L9.60001 20.66C10.3337 21.2452 11.2199 21.5863 12.1468 21.6347C13.0737 21.6831 13.9972 21.4367 14.78 20.93L20.92 16.79C21.3794 16.4772 21.7619 16.066 22.0411 15.5883C22.3204 15.1107 22.4892 14.5801 22.5367 14.034C22.5842 13.488 22.509 12.9401 22.3186 12.4241C22.1282 11.9082 21.8274 11.4372 21.44 11.05Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 5L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                             <button type="submit" id="submit-button" class="bg-cyan-600 text-white p-2 rounded-lg hover:bg-cyan-900 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                             <div id="loader" class="hidden"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                </form>
+                 <input type="file" id="file-input" class="hidden" accept="image/*">
+            </div>
+        </div>
+
+        <div id="results-view" class="hidden flex-1 flex flex-col w-full max-w-3xl px-4 pt-8 pb-32">
+            <h1 id="prompt-title" class="text-3xl font-semibold mb-6"></h1>
+            <div class="flex items-center gap-4 mb-6 border-b border-white/10">
+                <button class="py-2 border-b-2 border-white font-semibold">Cortexz</button>
+            </div>
+            
+            <div id="image-display-area" class="mb-4"></div>
+
+            <div id="results-content" class="prose prose-dark max-w-none text-lg leading-relaxed"></div>
+        </div>
+        
+        <div id="follow-up-bar" class="hidden fixed bottom-0 w-full flex justify-center pb-8 pt-4 bg-gradient-to-t from-[#171717] to-transparent pointer-events-none">
+             <div class="w-full max-w-3xl px-4 pointer-events-auto">
+                <form id="follow-up-form" class="relative">
+                    <div class="relative w-full main-input-shadow rounded-2xl bg-[#282828]">
+                        <input id="follow-up-input" type="text" placeholder="Ask a follow-up..." class="w-full bg-transparent text-white placeholder-gray-500 py-4 pl-5 pr-28 rounded-2xl border-none focus:ring-2 focus:ring-cyan-500 transition" disabled>
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 text-gray-400">
+                             <button type="button" class="p-2 rounded-lg hover:bg-white/10 transition-colors" disabled>
+                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.44 11.05L12.95 2.55998C12.5627 2.17264 12.0917 1.87183 11.5758 1.68143C11.0598 1.49104 10.5119 1.41584 9.96599 1.46332C9.41999 1.5108 8.88934 1.67961 8.4117 1.95886C7.93406 2.23812 7.52285 2.62061 7.21001 3.07998L3.07001 9.21998C2.56334 10.0028 2.31689 10.9263 2.36531 11.8532C2.41373 12.7801 2.75479 13.6663 3.34001 14.4L9.60001 20.66C10.3337 21.2452 11.2199 21.5863 12.1468 21.6347C13.0737 21.6831 13.9972 21.4367 14.78 20.93L20.92 16.79C21.3794 16.4772 21.7619 16.066 22.0411 15.5883C22.3204 15.1107 22.4892 14.5801 22.5367 14.034C22.5842 13.488 22.509 12.9401 22.3186 12.4241C22.1282 11.9082 21.8274 11.4372 21.44 11.05Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 5L9 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                             <button type="submit" id="follow-up-submit-button" class="bg-cyan-600 text-white p-2 rounded-lg hover:bg-cyan-900 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+             </div>
+        </div>
+
+    </main>
+    <script>
+        const initialView = document.getElementById('initial-view');
+        const resultsView = document.getElementById('results-view');
+        const mainForm = document.getElementById('main-form');
+        const mainInput = document.getElementById('main-input');
+        const followUpForm = document.getElementById('follow-up-form');
+        const followUpInput = document.getElementById('follow-up-input');
+        const followUpSubmitButton = document.getElementById('follow-up-submit-button');
+        const promptTitle = document.getElementById('prompt-title');
+        const resultsContent = document.getElementById('results-content');
+        const loader = document.getElementById('loader');
+        const submitButton = document.getElementById('submit-button');
+        
+        const attachButton = document.getElementById('attach-button');
+        const fileInput = document.getElementById('file-input');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imageDisplayArea = document.getElementById('image-display-area');
+        
+
+        const homeButton = document.getElementById('home-button');
+        const profileButton = document.getElementById('profile-button');
+        const appsButton = document.getElementById('apps-button');
+        const helpButton = document.getElementById('help-button');
+
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+        }
+
+
+        if (homeButton) {
+            homeButton.addEventListener('click', () => {
+                resetUI();
+            });
+        }
+        
+
+        if (profileButton) {
+            profileButton.addEventListener('click', () => {
+                initialView.classList.add('hidden');
+                initialView.classList.remove('flex');
+                resultsView.classList.remove('hidden');
+                resultsView.classList.add('flex');
+                promptTitle.textContent = 'Chat History';
+                renderChatHistory();
+                document.getElementById('follow-up-bar').classList.add('hidden');
+            });
+        }
+        
+
+        if (appsButton) {
+            appsButton.addEventListener('click', () => {
+                initialView.classList.add('hidden');
+                initialView.classList.remove('flex');
+                resultsView.classList.remove('hidden');
+                resultsView.classList.add('flex');
+                promptTitle.textContent = 'Apps & Integrations';
+                const md = `
+- [ChatGPT](https://chat.openai.com/)
+- [Perplexity](https://www.perplexity.ai/)
+- [Qwen](https://qwen.alibaba.com/)
+`;
+                setResultsHTML(marked.parse(md));
+                document.getElementById('follow-up-bar').classList.add('hidden');
+            });
+        }
+        
+
+        if (helpButton) {
+            helpButton.addEventListener('click', () => {
+                initialView.classList.add('hidden');
+                initialView.classList.remove('flex');
+                resultsView.classList.remove('hidden');
+                resultsView.classList.add('flex');
+                promptTitle.textContent = 'How to use the AI';
+                const helpMd = `# How to use this assistant\n\n- Type a question in the main input and press enter or click the send icon.\n- Attach an image to ask about it via the paperclip icon.\n- Use the follow-up bar for quick additional questions after seeing a result.\n\n### Tips\n- Be specific: "Summarize the article about X in 3 bullet points."\n- Ask for step-by-step instructions when you want a tutorial.\n- Ask the model to act as a role: "You are a tutor — explain..."\n\n### Sample prompts\n- Explain quantum entanglement in simple terms.\n- Generate a short poem about autumn.\n- Compare two technologies for web development.\n`;
+                setResultsHTML(marked.parse(helpMd) + fontCardsHtml);
+                document.getElementById('follow-up-bar').classList.add('hidden');
+
+                updateFontSelectionUI();
+            });
+        }
+        
+        function setFont(font) {
+            document.body.classList.remove('font-poppins', 'font-jetbrains');
+            if (font === 'poppins') document.body.classList.add('font-poppins'); else document.body.classList.add('font-jetbrains');
+            localStorage.setItem('cortexz_font', font);
+            updateFontSelectionUI();
+        }
+
+        function updateFontSelectionUI() {
+            const saved = localStorage.getItem('cortexz_font') || (document.body.classList.contains('font-poppins') ? 'poppins' : 'jetbrains');
+            const btns = document.querySelectorAll('.font-select-btn');
+            btns.forEach(b => {
+                const f = b.dataset.font;
+                if (f === saved) {
+                    b.textContent = 'Selected';
+                    b.setAttribute('aria-selected', 'true');
+                    b.disabled = false;
+                } else {
+                    b.textContent = 'Select';
+                    b.setAttribute('aria-selected', 'false');
+                    b.disabled = false;
+                }
+            });
+            const cards = { poppins: document.getElementById('card-poppins'), jetbrains: document.getElementById('card-jetbrains') };
+            if (cards.poppins) cards.poppins.style.borderColor = saved === 'poppins' ? 'rgba(6,182,212,0.6)' : 'rgba(255,255,255,0.04)';
+            if (cards.jetbrains) cards.jetbrains.style.borderColor = saved === 'jetbrains' ? 'rgba(6,182,212,0.6)' : 'rgba(255,255,255,0.04)';
+        }
+
+        function applySavedFont() {
+            const saved = localStorage.getItem('cortexz_font');
+            if (saved === 'poppins') document.body.classList.add('font-poppins');
+            else document.body.classList.add('font-jetbrains');
+        }
+
+        applySavedFont();
+
+        function renderChatHistory() {
+            if (!conversationHistory || conversationHistory.length === 0) {
+                resultsContent.innerHTML = '<p class="text-gray-400">No chat history yet.</p>';
+                return;
+            }
+            let html = '<div class="flex justify-between items-center mb-4"><h3 class="text-lg font-medium">Past Conversations</h3><button id="clear-history" class="text-sm text-red-400">Clear history</button></div>';
+            conversationHistory.forEach((entry, idx) => {
+                const role = entry.role || 'user';
+                const textParts = (entry.parts || []).map(p => p.text || '').join('\n\n');
+                html += `<div class="mb-4 p-3 rounded bg-[#111111]">`;
+                html += `<div class="text-xs text-gray-400 mb-1">${role.toUpperCase()}</div>`;
+                html += `<div class=\"prose prose-dark\">${marked.parse(textParts)}</div>`;
+                html += `</div>`;
+            });
+            resultsContent.innerHTML = html;
+            const clearBtn = document.getElementById('clear-history');
+            if (clearBtn) clearBtn.addEventListener('click', () => {
+                    conversationHistory = [];
+                    renderChatHistory();
+                });
+            
+
+            setResultsHTML(html);
+        }
+
+        let imageData = null;
+        let conversationHistory = [];
+
+        const TEXT_MODEL = 'gemini-2.5-flash-lite';
+        const IMAGE_MODEL = 'gemini-2.5-flash-image-preview';
+        const API_KEY = " AIzaSyB5_Nr242XmiNud5P65cIFXXHFOlnpkf_8";
+
+        function resetUI() {
+            initialView.classList.remove('hidden');
+            initialView.classList.add('flex');
+            resultsView.classList.add('hidden');
+            resultsView.classList.remove('flex');
+            mainInput.value = '';
+            followUpInput.value = '';
+            followUpInput.disabled = true;
+            followUpSubmitButton.disabled = true;
+            resultsContent.innerHTML = '';
+            promptTitle.textContent = '';
+            conversationHistory = [];
+            document.getElementById('follow-up-bar').classList.add('hidden');
+            removeImagePreview();
+        }
+
+        function showLoading(isLoading) {
+            if (isLoading) {
+                loader.classList.remove('hidden');
+                submitButton.classList.add('hidden');
+                mainInput.disabled = true;
+            } else {
+                loader.classList.add('hidden');
+                submitButton.classList.remove('hidden');
+                mainInput.disabled = false;
+            }
+        }
+        
+        function removeImagePreview() {
+            imageData = null;
+            imagePreviewContainer.innerHTML = '';
+            imageDisplayArea.innerHTML = '';
+            fileInput.value = ''; 
+            mainInput.style.paddingLeft = '3.5rem'; 
+        }
+
+        function createPreviewElement(base64) {
+             const previewWrapper = document.createElement('div');
+             previewWrapper.className = 'relative group';
+             
+             const img = document.createElement('img');
+             img.src = base64;
+             img.className = 'w-8 h-8 object-cover rounded';
+             previewWrapper.appendChild(img);
+
+             const removeBtn = document.createElement('button');
+             removeBtn.innerHTML = '&times;';
+             removeBtn.className = 'absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity';
+             removeBtn.onclick = removeImagePreview;
+             previewWrapper.appendChild(removeBtn);
+             return previewWrapper;
+        }
+
+       
+        attachButton.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result;
+                imageData = {
+                    mimeType: file.type,
+                    data: base64String.split(',')[1]
+                };
+                
+               
+                imagePreviewContainer.innerHTML = '';
+                
+                const previewElement = createPreviewElement(base64String);
+                imagePreviewContainer.appendChild(previewElement);
+
+                mainInput.style.paddingLeft = '8rem'; 
+            };
+            reader.readAsDataURL(file);
+        });
+
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const input = form.querySelector('input[type="text"]');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            showLoading(true);
+
+            initialView.classList.add('hidden');
+            initialView.classList.remove('flex');
+            resultsView.classList.remove('hidden');
+            resultsView.classList.add('flex');
+            
+
+            document.getElementById('follow-up-bar').classList.remove('hidden');
+            
+            promptTitle.textContent = prompt;
+            resultsContent.innerHTML = '<div class="loader-center"><div class="loader"></div></div>';
+            
+            if (imageData) {
+                imageDisplayArea.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = `data:${imageData.mimeType};base64,${imageData.data}`;
+                img.className = 'max-w-xs rounded-lg mb-4';
+                imageDisplayArea.appendChild(img);
+            }
+            
+            conversationHistory.push({ role: "user", parts: [{ text: prompt }] });
+            
+            await callGeminiAPI(prompt, imageData);
+            
+            input.value = '';
+            showLoading(false);
+            
+            followUpInput.disabled = false;
+            followUpSubmitButton.disabled = false;
+            followUpInput.focus();
+        }
+
+        mainForm.addEventListener('submit', handleFormSubmit);
+        followUpForm.addEventListener('submit', handleFormSubmit);
+
+        async function callGeminiAPI(prompt, image) {
+            const imageKeywords = ["generate", "draw", "make an image", "develop an image"];
+            const shouldUseImageModel = imageKeywords.some(keyword => prompt.toLowerCase().includes(keyword));
+            const model = image || shouldUseImageModel ? IMAGE_MODEL : TEXT_MODEL;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+            
+            let parts = [{ text: prompt }];
+            if (image) {
+                parts.push({
+                    inlineData: {
+                        mimeType: image.mimeType,
+                        data: image.data
+                    }
+                });
+            }
+
+            const payload = {
+                contents: [{ role: "user", parts: parts }]
+            };
+            
+            if (!image && conversationHistory.length > 1) {
+                payload.contents = conversationHistory;
+            }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(`API Error: ${error.error.message}`);
+                }
+
+                const data = await response.json();
+                
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    conversationHistory.push({ role: "model", parts: [{ text: text }] });
+                    const htmlContent = marked.parse(text);
+                    setResultsHTML(htmlContent);
+                } else {
+                    throw new Error("No content found in response.");
+                }
+
+            } catch (error) {
+                console.error('Error calling Gemini API:', error);
+                setResultsHTML(`<p class="text-red-400">Sorry, something went wrong. Please try again. <br><small>${error.message}</small></p>`);
+            } finally {
+
+                removeImagePreview();
+            }
+        }
+
+        marked.setOptions({
+            gfm: true,
+            breaks: false,
+            smartLists: true,
+            highlight: function(code, lang) {
+                try {
+                    if (lang && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, {language: lang}).value;
+                    }
+                } catch (e) {
+
+                }
+                return hljs.highlightAuto(code).value;
+            }
+        });
+
+        function enhanceCodeBlocks(root = document) {
+            const codeBlocks = root.querySelectorAll('pre > code');
+            codeBlocks.forEach((code) => {
+                const pre = code.parentElement;
+                if (!pre) return;
+                if (pre.dataset.enhanced === '1') return;
+                pre.dataset.enhanced = '1';
+
+               
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-card mb-4';
+
+               
+                pre.parentElement.insertBefore(wrapper, pre);
+                wrapper.appendChild(pre);
+
+                
+                const btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.type = 'button';
+                btn.textContent = 'Copy';
+                btn.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(code.textContent);
+                        btn.textContent = 'Copied';
+                        setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+                    } catch (err) {
+                        console.error('Copy failed', err);
+                    }
+                });
+                wrapper.appendChild(btn);
+
+               
+                try { hljs.highlightElement(code); } catch (e) {}
+            });
+        }
+
+      
+        const originalMarkedParse = marked.parse.bind(marked);
+        marked.parse = function(md) {
+            const html = originalMarkedParse(md);
+            return html;
+        };
+
+        
+        function setResultsHTML(html) {
+            resultsContent.innerHTML = html;
+            enhanceCodeBlocks(resultsContent);
+        }
+    </script>
+</body>
+</html>
